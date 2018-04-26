@@ -18,7 +18,7 @@ export default class RandomMaze {
 		this.y = 0       //Vertical starting position
 		this.canvas = el.querySelector('canvas')
 		this.ctx = this.canvas.getContext('2d')
-		this.directions = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+		this.directions = [[0, 1, 'right', 'left'], [1, 0, 'down', 'up'], [0, -1, 'left', 'right'], [-1, 0, 'up', 'down']]
 		this.map = []
 		this.track = []
 		this.route = []
@@ -63,9 +63,12 @@ export default class RandomMaze {
 		// get posible moves array
 		this.directions.forEach(d => {
 			if (this.track[d[1] + this.x] && this.track[d[1] + this.x][d[0] + this.y] === null) {
-				posibleMoves.push([d[1] + this.x, d[0] + this.y])
+				posibleMoves.push([d[1] + this.x, d[0] + this.y, d[2], d[3]])
 			}
 		});
+		if(this.blocksTracked == this.blocks){
+			console.log(this.map)
+		}
 		if (this.route.length > 0 && this.blocksTracked < this.blocks) {
 			if (posibleMoves.length === 0) { 			// no posible moves
 				this.track[this.x][this.y] = false 	// mark as tracked
@@ -78,18 +81,11 @@ export default class RandomMaze {
 				}
 			} else {
 				let move = posibleMoves[Math.floor(Math.random() * (posibleMoves.length - 0.01))]
+				// console.log(this.x + ',' + this.y)
+				// console.log(move[2])
 				this.track[this.x][this.y] = true
-				if (move[0] == -1) {
-					this.map[this.x][this.y].left = true;
-				} else if (move[0] == 1) {
-					this.map[this.x][this.y].right = true;
-				} else if (move[1] == -1) {
-					this.map[this.x][this.y].up = true;
-				} else if (move[1] == 1) {
-					this.map[this.x][this.y].down = true;
-				}
-				console.log(move)
-				console.log(this.map)
+				this.map[this.y][this.x][move[2]] = true
+				this.map[move[1]][move[0]][move[3]] = true
 				this.x = move[0]
 				this.y = move[1]
 				this.route.push([this.x, this.y])
