@@ -1,23 +1,25 @@
 import MazeBlock from "./MazeBlock"
+import config from "./Config"
 export default class RandomMaze {
-	constructor(el) {
-		this.boardWidth = el.offsetWidth
-		this.boardHeight = el.offsetHeight
-		this.pathWidth = 50       //Width of the Maze Path
-		this.wall = 1             //Width of the Walls between Paths
-		this.outerWall = 1        //Width of the Outer most wall
-		this.width = Math.floor((this.boardWidth - this.outerWall) / (this.pathWidth + this.wall))           //Number paths fitted horisontally
-		this.height = Math.floor((this.boardHeight - this.outerWall) / (this.pathWidth + this.wall))          //Number paths fitted vertically
-		this.blocks = this.width * this.height;
+	constructor(config) {
+		this.boardWidth = config.boardWidth || 500
+		this.boardHeight = config.boardHeight || 500
+		this.pathWidth = config.pathWidth || 50						//Width of the Maze Path
+		this.wall = config.wall || 1									//Width of the Walls between Paths
+		this.outerWall = config.outerWall || 1        					//Width of the Outer most wall
+		this.width = config.width || Math.floor((this.boardWidth - this.outerWall) / (this.pathWidth + this.wall))           //Number paths fitted horisontally
+		this.height = config.height || Math.floor((this.boardHeight - this.outerWall) / (this.pathWidth + this.wall))          //Number paths fitted vertically
+		this.blocks = config.blocks || this.width * this.height;
+		this.wallColor = config.wallColor || '#4285F4'   				//Color of the walls
+		this.pathColor = config.pathColor || '#212121' 				//Color of the path
+		this.pathReverseColor = config.pathReverseColor || '#ff4444' 	//Color of the reverse path
+		this.canvas = config.canvas
+		this.ctx = config.ctx
+		
 		this.blocksTracked = 0
-		this.wallColor = '#4285F4'   //Color of the walls
-		this.pathColor = '#212121'//Color of the path
-		this.pathReverseColor = '#ff4444'//Color of the reverse path
-		this.delay = 0            //Delay between algorithm cycles
-		this.x = 0        //Horisontal starting position
-		this.y = 0       //Vertical starting position
-		this.canvas = el.querySelector('canvas')
-		this.ctx = this.canvas.getContext('2d')
+		this.delay = 0
+		this.x = 0        													//Horisontal starting position
+		this.y = 0       													//Vertical starting position
 		this.directions = [[0, 1, 'right', 'left'], [1, 0, 'down', 'up'], [0, -1, 'left', 'right'], [-1, 0, 'up', 'down']]
 		this.map = []
 		this.track = []
@@ -58,6 +60,24 @@ export default class RandomMaze {
 
 	randomMove() {
 		this.step++
+
+		// get posible moves array
+		let posibleMoves = this.checkPosibleMoves()
+
+		if (this.route.length > 0 && this.blocksTracked < this.blocks) {
+			if (posibleMoves.length === 0) { 	// no posible moves
+				this.back()
+			} else {
+				this.next(posibleMoves)
+			}
+
+			setTimeout(() => {					// loop
+				this.randomMove(); 
+			}, this.delay)
+		}
+	}
+
+	checkPosibleMoves() {
 		let posibleMoves = []
 
 		// get posible moves array
@@ -66,38 +86,33 @@ export default class RandomMaze {
 				posibleMoves.push([d[1] + this.x, d[0] + this.y, d[2], d[3]])
 			}
 		});
-		if(this.blocksTracked == this.blocks){
-			console.log(this.map)
+
+		return posibleMoves
+	}
+
+	next(posibleMoves) {
+		let move = posibleMoves[Math.floor(Math.random() * (posibleMoves.length - 0.01))]
+		this.track[this.x][this.y] = true
+		this.map[this.y][this.x][move[2]] = true
+		this.map[move[1]][move[0]][move[3]] = true
+		this.x = move[0]
+		this.y = move[1]
+		this.route.push([this.x, this.y])
+		this.blocksTracked++
+		this.drawPath()
+		if(posibleMoves.length == 1){
+			this.route.splice(this.route.length - 2,1);
 		}
-		if (this.route.length > 0 && this.blocksTracked < this.blocks) {
-			if (posibleMoves.length === 0) { 			// no posible moves
-				this.track[this.x][this.y] = false 	// mark as tracked
-				// this.drawReversePath()
-				this.route.pop() 					// step back
-				// set current pos
-				if (this.route[this.route.length - 1]) {
-					this.x = this.route[this.route.length - 1][0]
-					this.y = this.route[this.route.length - 1][1]
-				}
-			} else {
-				let move = posibleMoves[Math.floor(Math.random() * (posibleMoves.length - 0.01))]
-				// console.log(this.x + ',' + this.y)
-				// console.log(move[2])
-				this.track[this.x][this.y] = true
-				this.map[this.y][this.x][move[2]] = true
-				this.map[move[1]][move[0]][move[3]] = true
-				this.x = move[0]
-				this.y = move[1]
-				this.route.push([this.x, this.y])
-				this.blocksTracked++
-				this.drawPath()
-				if(posibleMoves.length == 1){
-					this.route.splice(this.route.length - 2,1);
-				}
-			}
-			setTimeout(() => { 
-				this.randomMove(); 
-			}, this.delay)
+	}
+
+	back() {
+		this.track[this.x][this.y] = false 			// mark as tracked
+		// this.drawReversePath()
+		this.route.pop() 							// step back
+		
+		if (this.route[this.route.length - 1]) {	// set current pos
+			this.x = this.route[this.route.length - 1][0]
+			this.y = this.route[this.route.length - 1][1]
 		}
 	}
 
@@ -118,8 +133,5 @@ export default class RandomMaze {
 		this.ctx.fill()
 		this.ctx.closePath()
 		this.ctx.beginPath()
-	}
-
-	loop() {
 	}
 }
