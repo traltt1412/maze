@@ -1,5 +1,4 @@
 import MazeBlock from "./MazeBlock"
-import config from "./Config"
 export default class RandomMaze {
 	constructor(config) {
 		this.boardWidth = config.boardWidth || 500
@@ -13,8 +12,8 @@ export default class RandomMaze {
 		this.wallColor = config.wallColor || '#4285F4'   				//Color of the walls
 		this.pathColor = config.pathColor || '#212121' 				//Color of the path
 		this.pathReverseColor = config.pathReverseColor || '#ff4444' 	//Color of the reverse path
-		this.canvas = config.canvas
-		this.ctx = config.ctx
+		this.canvas = config.mazeCanvas
+		this.ctx = this.canvas.getContext('2d')
 		
 		this.blocksTracked = 0
 		this.delay = 0

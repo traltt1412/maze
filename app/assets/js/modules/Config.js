@@ -12,7 +12,12 @@ export default class Config {
 		this.wallColor = '#4285F4'   //Color of the walls
 		this.pathColor = '#212121'//Color of the path
 		this.pathReverseColor = '#ff4444'//Color of the reverse path
-		this.canvas = options.canvas || document.querySelector('canvas')
-		this.ctx = this.canvas.getContext('2d')
+		this.mazeCanvas = options.mazeCanvas || document.querySelector('canvas#maze')
+		this.dummyCanvas = options.dummyCanvas || document.querySelector('canvas#dummy')
+		this.map = []
+	}
+
+	setMap(map) {
+		this.map = map
 	}
 }
